@@ -1,12 +1,15 @@
 from datetime import datetime
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 import logging
 from logging.handlers import TimedRotatingFileHandler
 import os
 import time
+import traceback
 import uvicorn
+from fastapi.openapi.docs import get_redoc_html
 
-from .routers import items, jsonutils, smsutils, mdigitax
+from .routers import items, jsonutils, smsutils, mdigitax, etimvscu
 
 
 # 1. Setup daily rolling log handler
@@ -29,8 +32,22 @@ def setup_logging():
         
     return logger
 
-app = FastAPI(title="MApi Utils")
+app = FastAPI(title="MApi Utils", swagger_ui_parameters={"tryItOutEnabled": True}, version='1.0.1'
+              # , description='Simulator for all sorts of stuff'
+              , redoc_url="/redoc"
+              #, redoc_url=None
+              , redoc_js_url="https://cdn.jsdelivr.net/npm/redoc@2.5.4/bundles/redoc.standalone.js"
+              )
 logger = setup_logging()
+
+@app.get("/redocx", include_in_schema=False)
+def redoc():
+    return get_redoc_html(
+        openapi_url=app.openapi_url,
+        title=f"{app.title} - ReDoc",
+        # Pin to version 2 to avoid ES-module issues with v3 or CDN errors
+        redoc_js_url="https://cdn.jsdelivr.net/npm/redoc@2.0.0/bundles/redoc.standalone.js",
+    )
 
 # 2. Add middleware to intercept all requests
 @app.middleware("http")
@@ -57,6 +74,7 @@ async def log_requests(request: Request, call_next):
 app.include_router(jsonutils.router, prefix="/jutils", tags=["json-utils"])
 app.include_router(smsutils.router, prefix="/smsutils", tags=["sms-utils"])
 app.include_router(mdigitax.router, prefix="/digitax", tags=["digitax-utils"])
+app.include_router(etimvscu.router, prefix="/vscu", tags=["vscu-utils"])
 
 @app.get("/")
 async def read_root():
@@ -66,6 +84,19 @@ async def read_root():
          "service": "FastAPI Service Simulator",
          "checkedat": now.isoformat()[:-3]
          }
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    # Log full details internally
+    logger.error(
+        f"Unhandled exception at {request.url.path}:\n{traceback.format_exc()}"
+    )
+    
+    # Return safe message to client
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Internal Server Error"}
+    )
 
 # This block is critical for the service worker execution
 if __name__ == "__main__":

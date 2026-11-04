@@ -12,6 +12,7 @@ import time
 import asyncio
 import requests
 import uuid
+import random
 
 router = APIRouter()
 logger = logging.getLogger("fastapi_middleware_logger")
@@ -59,6 +60,7 @@ async def sendsalumsms(request: SalumSMSRequest, x_request_id: str = Header(None
     jsonItem = jsonable_encoder(request)
     strPlayload = json.dumps(jsonItem)
     print(f'payload: {strPlayload}')
+    unique_number = random.randint(1000000, 9999999)
 
     time.sleep(7)
     jsonResponse = {
@@ -67,7 +69,7 @@ async def sendsalumsms(request: SalumSMSRequest, x_request_id: str = Header(None
             "respose-code": 200,
             "response-description": "Success",
             "mobile": 254712345678,
-            "messageid": 8290842,
+            "messageid": unique_number,
             "networkid": "1"
             }
         ]
@@ -141,6 +143,7 @@ async def sendonfonsms(request: OnFonSMSRequest, x_request_id: str = Header(None
     strPlayload = json.dumps(jsonItem)
     print(f'payload: {strPlayload}')
 
+    unique_id = uuid.uuid4()
     time.sleep(3)
     jsonResponse = {
         "ErrorCode": 0,
@@ -150,7 +153,7 @@ async def sendonfonsms(request: OnFonSMSRequest, x_request_id: str = Header(None
                 "MessageErrorCode": 0,
                 "MessageErrorDescription": "Success",
                 "MobileNumber": "254722799445",
-                "MessageId": "2805b6e5-c8f2-42c1-b46c-e82c3bd87861",
+                "MessageId": str(unique_id),
                 "Custom": ""
             }
         ]
