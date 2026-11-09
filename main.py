@@ -9,7 +9,7 @@ import traceback
 import uvicorn
 from fastapi.openapi.docs import get_redoc_html
 
-from .routers import items, jsonutils, smsutils, mdigitax, etimvscu
+from routers import items, jsonutils, smsutils, mdigitax, etimvscu
 
 
 # 1. Setup daily rolling log handler
