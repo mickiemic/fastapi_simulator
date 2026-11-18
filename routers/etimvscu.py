@@ -124,7 +124,7 @@ async def select_codes(req: BhfReq):
     return JSONResponse(content=jsonResponse, status_code=201)
 
 @router.post("/itemClass/selectItemsClass")
-async def select_item_class(req: CustReq):
+async def select_item_class(req: BhfReq):
     jsonItem = jsonable_encoder(req)
     strPlayload = json.dumps(jsonItem)
     logger.info(f'>> /itemClass/selectItemsClass >> {strPlayload}')
